@@ -2,8 +2,12 @@ import numpy as np
 import pandas as pd
 
 class Dice:
-    def __init__(self, sides=6):
-        self.sides = sides
+    def __init__(self, sides=6, seed=None):
+        if seed is not None:
+            self.sides = sides
+            np.random.seed(seed)
+        else:
+            self.sides = sides
 
     def roll(self, num_rolls=1):
         return np.random.randint(1, self.sides + 1, size=num_rolls)
