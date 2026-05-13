@@ -417,6 +417,57 @@ class TestExperiment(unittest.TestCase):
         self.assertEqual(damage, 0)
         self.assertEqual(exp.dice.roll.call_count, 1)
 
+    def test_run_single_episode_averages_damage_over_multiple_attacks(self):
+        """Test that run_single_episode returns mean damage across n_attacks."""
+        exp = experiment(defence=7, attack=0, power=3, armour=1, n_attacks=3)
+        exp.dice.roll = Mock(side_effect=[
+            np.array([4, 4]),  # attack 1 to-hit (hit)
+            np.array([2, 2]),  # attack 1 damage -> 4 + 3 - 1 = 6
+            np.array([1, 1]),  # attack 2 to-hit (auto miss)
+            np.array([3, 3]),  # attack 3 to-hit (miss: 6 < 7)
+        ])
+
+        damage = exp.run_single_episode()
+
+        self.assertEqual(damage, 2.0)
+        self.assertEqual(exp.dice.roll.call_count, 4)
+
+    def test_experiment_rejects_invalid_n_attacks(self):
+        """Test that n_attacks must be at least one."""
+        with self.assertRaises(ValueError):
+            experiment(defence=10, attack=0, power=0, armour=0, n_attacks=0)
+
+    def test_run_single_episode_returns_casualties_for_infantry(self):
+        """Test infantry mode returns casualties with ordered wound allocation."""
+        exp = experiment(
+            defence=7,
+            attack=0,
+            power=0,
+            armour=0,
+            n_attacks=3,
+            odd_parameters={'infantry_wounds': 3}
+        )
+        exp.dice.roll = Mock(side_effect=[
+            np.array([4, 4]),  # attack 1 to-hit (hit)
+            np.array([2, 3]),  # attack 1 damage = 5 -> 1 casualty, 2 wasted
+            np.array([4, 4]),  # attack 2 to-hit (hit)
+            np.array([1, 1]),  # attack 2 damage = 2 -> no casualty yet
+            np.array([4, 4]),  # attack 3 to-hit (hit)
+            np.array([1, 1]),  # attack 3 damage = 2 -> reaches 4, 1 casualty, 1 wasted
+        ])
+
+        casualties = exp.run_single_episode()
+
+        self.assertEqual(casualties, 2)
+
+    def test_run_single_episode_rejects_invalid_infantry_wounds(self):
+        """Test that infantry_wounds must be at least one when provided."""
+        exp = experiment(defence=2, attack=0, power=0, armour=0, odd_parameters={'infantry_wounds': 0})
+        exp.dice.roll = Mock(side_effect=[np.array([2, 2]), np.array([1, 1])])
+
+        with self.assertRaises(ValueError):
+            exp.run_single_episode()
+
 
 if __name__ == '__main__':
     unittest.main()
