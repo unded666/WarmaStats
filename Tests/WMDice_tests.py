@@ -468,6 +468,17 @@ class TestExperiment(unittest.TestCase):
         with self.assertRaises(ValueError):
             exp.run_single_episode()
 
+    def test_run_experiment_returns_full_result_array(self):
+        """Test that run_experiment returns one value per episode as a numpy array."""
+        exp = experiment(defence=10, attack=0, power=0, armour=0, n_tests=3)
+        exp.run_single_episode = Mock(side_effect=[1.5, 0.0, 2.0])
+
+        results = exp.run_experiment()
+
+        self.assertIsInstance(results, np.ndarray)
+        np.testing.assert_array_equal(results, np.array([1.5, 0.0, 2.0]))
+        self.assertEqual(len(results), 3)
+
 
 if __name__ == '__main__':
     unittest.main()

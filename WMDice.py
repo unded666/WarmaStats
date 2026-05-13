@@ -98,6 +98,16 @@ class experiment:
             return casualties
 
         return total_damage / self.n_attacks
+    
+    def run_experiment (self) -> np.ndarray:
+        """
+        runs the experiment for n_tests episodes and returns the full per-episode result array.
+        In non-infantry mode, each element is expected damage for one episode.
+        In infantry mode, each element is casualties for one episode.
+
+        :return: numpy array of length n_tests containing one result per episode
+        """
+        return np.array([self.run_single_episode() for _ in range(self.n_tests)])
         
 
 if __name__ == '__main__':
