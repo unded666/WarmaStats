@@ -82,6 +82,8 @@
                 const probMin = Math.max(0, Math.min(...probs) - 0.2);
                 const probMax = Math.min(1, Math.max(...probs) + 0.2);
 
+                const toPercent = value => `${(value * 100).toFixed(1)}%`;
+
                 new Chart(document.getElementById('probChart'), {
                     type: 'bar',
                     data: {
@@ -100,11 +102,19 @@
                             legend: { display: true },
                             tooltip: {
                                 callbacks: {
-                                    label: ctx => `Probability: ${ctx.parsed.y.toFixed(6)}`
+                                    label: ctx => `Probability: ${toPercent(ctx.parsed.y)}`
                                 }
                             }
                         },
-                        scales: { y: { min: probMin, max: probMax } }
+                        scales: {
+                            y: {
+                                min: probMin,
+                                max: probMax,
+                                ticks: {
+                                    callback: value => toPercent(Number(value))
+                                }
+                            }
+                        }
                     }
                 });
 
@@ -126,11 +136,19 @@
                             legend: { display: true },
                             tooltip: {
                                 callbacks: {
-                                    label: ctx => `Cumulative Probability: ${ctx.parsed.y.toFixed(6)}`
+                                    label: ctx => `Cumulative Probability: ${toPercent(ctx.parsed.y)}`
                                 }
                             }
                         },
-                        scales: { y: { beginAtZero: true, max: 1 } }
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 1,
+                                ticks: {
+                                    callback: value => toPercent(Number(value))
+                                }
+                            }
+                        }
                     }
                 });
             </script>
