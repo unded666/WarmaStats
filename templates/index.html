@@ -11,6 +11,9 @@
         .panel { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 16px; }
         form label { display: block; margin-top: 10px; font-weight: bold; }
         form input { width: 100%; padding: 8px; box-sizing: border-box; margin-top: 4px; }
+        .checkbox-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+        .checkbox-row label { margin-top: 0; font-weight: bold; }
+        .checkbox-row input[type="checkbox"] { width: auto; margin-top: 0; }
         button { margin-top: 14px; padding: 10px 14px; border: 0; border-radius: 6px; background: #2463eb; color: #fff; cursor: pointer; }
         .error { background: #ffe8e8; border: 1px solid #d33; color: #900; padding: 10px; border-radius: 6px; margin-bottom: 10px; }
         .kpi { display: flex; gap: 18px; margin: 10px 0 16px; }
@@ -52,6 +55,16 @@
 
             <label for="infantry_wounds">Infantry wounds (optional)</label>
             <input id="infantry_wounds" name="infantry_wounds" type="number" min="1" placeholder="Leave blank for damage mode" value="{{ form_values.infantry_wounds }}">
+
+            <div class="checkbox-row">
+                <input id="charge_attack" name="charge_attack" type="checkbox" {% if form_values.charge_attack %}checked{% endif %}>
+                <label for="charge_attack">Charge attack (+1 damage die on first damage roll)</label>
+            </div>
+
+            <div class="checkbox-row">
+                <input id="cavalry_charge" name="cavalry_charge" type="checkbox" {% if form_values.cavalry_charge %}checked{% endif %}>
+                <label for="cavalry_charge">Cavalry charge (+1 to-hit die on first to-hit roll)</label>
+            </div>
 
             <button type="submit">Run Experiment</button>
         </form>
@@ -186,5 +199,21 @@
         {% endif %}
     </div>
 </div>
+<script>
+    const chargeAttackCheckbox = document.getElementById('charge_attack');
+    const cavalryChargeCheckbox = document.getElementById('cavalry_charge');
+
+    if (chargeAttackCheckbox && cavalryChargeCheckbox) {
+        if (cavalryChargeCheckbox.checked) {
+            chargeAttackCheckbox.checked = true;
+        }
+
+        cavalryChargeCheckbox.addEventListener('change', () => {
+            if (cavalryChargeCheckbox.checked) {
+                chargeAttackCheckbox.checked = true;
+            }
+        });
+    }
+</script>
 </body>
 </html>

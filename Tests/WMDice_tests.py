@@ -432,6 +432,51 @@ class TestExperiment(unittest.TestCase):
         self.assertEqual(damage, 6)
         self.assertEqual(exp.dice.roll.call_count, 4)
 
+    def test_run_single_episode_charge_attack_adds_extra_die_to_first_damage_roll(self):
+        """Charge attack should add +1 damage die only to the first damage roll in an episode."""
+        exp = experiment(
+            defence=7,
+            attack=0,
+            power=0,
+            armour=0,
+            n_attacks=2,
+            odd_parameters={"charge_attack": True, "to_hit_dice": 2, "damage_dice": 2},
+        )
+        exp.dice.roll = Mock(side_effect=[
+            np.array([4, 4]),     # attack 1 to-hit (hit)
+            np.array([2, 2, 2]),  # attack 1 damage with bonus die = 6
+            np.array([4, 4]),     # attack 2 to-hit (hit)
+            np.array([1, 1]),     # attack 2 damage normal dice = 2
+        ])
+
+        damage = exp.run_single_episode()
+
+        self.assertEqual(damage, 8)
+        self.assertEqual(exp.dice.roll.call_args_list[1], call(num_rolls=3))
+        self.assertEqual(exp.dice.roll.call_args_list[3], call(num_rolls=2))
+
+    def test_run_single_episode_cavalry_charge_adds_extra_die_to_first_to_hit_roll(self):
+        """Cavalry charge should add +1 to-hit die only to the first to-hit roll in an episode."""
+        exp = experiment(
+            defence=7,
+            attack=0,
+            power=0,
+            armour=0,
+            n_attacks=2,
+            odd_parameters={"cavalry_charge": True, "to_hit_dice": 2, "damage_dice": 2},
+        )
+        exp.dice.roll = Mock(side_effect=[
+            np.array([3, 3, 1]),  # attack 1 to-hit with bonus die (hit)
+            np.array([1, 1]),     # attack 1 damage
+            np.array([3, 3]),     # attack 2 to-hit normal dice (miss)
+        ])
+
+        damage = exp.run_single_episode()
+
+        self.assertEqual(damage, 2)
+        self.assertEqual(exp.dice.roll.call_args_list[0], call(num_rolls=3))
+        self.assertEqual(exp.dice.roll.call_args_list[2], call(num_rolls=2))
+
     def test_experiment_rejects_invalid_n_attacks(self):
         """Test that n_attacks must be at least one."""
         with self.assertRaises(ValueError):

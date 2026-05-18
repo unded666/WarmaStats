@@ -17,6 +17,9 @@ class TestWebApp(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"WarmaStats Experiment Runner", response.data)
         self.assertIn(b"Run Experiment", response.data)
+        self.assertIn(b'name="charge_attack"', response.data)
+        self.assertIn(b'name="cavalry_charge"', response.data)
+        self.assertIn(b"cavalryChargeCheckbox.addEventListener('change'", response.data)
 
     @patch("web_app.run_wm_analytics")
     def test_index_post_runs_experiment_and_renders_results(self, mock_run_wm_analytics):
@@ -59,6 +62,9 @@ class TestWebApp(unittest.TestCase):
         self.assertIn(b"PDF:", response.data)
         self.assertIn(b"%:", response.data)
         mock_run_wm_analytics.assert_called_once()
+        called_kwargs = mock_run_wm_analytics.call_args.kwargs
+        self.assertFalse(called_kwargs["charge_attack"])
+        self.assertFalse(called_kwargs["cavalry_charge"])
 
 
 if __name__ == "__main__":

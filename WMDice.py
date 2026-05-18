@@ -49,6 +49,10 @@ class experiment:
         A to-hit roll of all ones is always a miss. On a hit, damage is power - armour
         plus a damage roll, with a minimum of zero damage per attack.
 
+        Optional odd-parameter modifiers:
+        - 'charge_attack': first damage roll in the episode gains +1 damage die.
+        - 'cavalry_charge': first to-hit roll in the episode gains +1 to-hit die.
+
         If odd_parameters includes 'infantry_wounds', attacks are resolved against a
         sequence of infantry models. Damage is applied to one model at a time until it
         becomes a casualty, then the next model starts taking damage. Excess damage on
@@ -59,13 +63,17 @@ class experiment:
         to_hit_dice = int(self.odd_parameters.get('to_hit_dice', 2))
         damage_dice = int(self.odd_parameters.get('damage_dice', 2))
         infantry_wounds = self.odd_parameters.get('infantry_wounds')
+        charge_attack = bool(self.odd_parameters.get('charge_attack', False))
+        cavalry_charge = bool(self.odd_parameters.get('cavalry_charge', False))
 
         total_damage = 0
         casualties = 0
         current_model_damage = 0
+        charge_attack_available = charge_attack
 
-        for _ in range(self.n_attacks):
-            to_hit_rolls = self.dice.roll(num_rolls=to_hit_dice)
+        for attack_index in range(self.n_attacks):
+            current_to_hit_dice = to_hit_dice + 1 if cavalry_charge and attack_index == 0 else to_hit_dice
+            to_hit_rolls = self.dice.roll(num_rolls=current_to_hit_dice)
             to_hit_roll = int(np.sum(to_hit_rolls))
             total_to_hit = to_hit_roll + self.attack
 
@@ -76,7 +84,9 @@ class experiment:
             if total_to_hit < self.defence:
                 continue
 
-            damage_roll = int(np.sum(self.dice.roll(num_rolls=damage_dice)))
+            current_damage_dice = damage_dice + 1 if charge_attack_available else damage_dice
+            damage_roll = int(np.sum(self.dice.roll(num_rolls=current_damage_dice)))
+            charge_attack_available = False
             damage = max(0, damage_roll + self.power - self.armour)
 
             if infantry_wounds is None:

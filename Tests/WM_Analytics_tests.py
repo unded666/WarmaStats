@@ -72,6 +72,8 @@ class TestWMAnalytics(unittest.TestCase):
             to_hit_dice=3,
             damage_dice=4,
             infantry_wounds=2,
+            charge_attack=True,
+            cavalry_charge=True,
         )
 
         mock_experiment.assert_called_once_with(
@@ -79,7 +81,13 @@ class TestWMAnalytics(unittest.TestCase):
             attack=1,
             power=2,
             armour=3,
-            odd_parameters={"to_hit_dice": 3, "damage_dice": 4, "infantry_wounds": 2},
+            odd_parameters={
+                "to_hit_dice": 3,
+                "damage_dice": 4,
+                "charge_attack": True,
+                "cavalry_charge": True,
+                "infantry_wounds": 2,
+            },
             n_attacks=5,
             n_tests=6,
         )

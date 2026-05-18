@@ -14,6 +14,8 @@ def run_wm_analytics(
     to_hit_dice: int = 2,
     damage_dice: int = 2,
     infantry_wounds: Optional[int] = None,
+    charge_attack: bool = False,
+    cavalry_charge: bool = False,
 ) -> dict:
     """Run a WMDice experiment and return analysis-ready output.
 
@@ -32,6 +34,8 @@ def run_wm_analytics(
         damage_dice: Number of d6 used for damage rolls.
         infantry_wounds: If set, simulation uses infantry casualty mode where
             this value defines wounds required to remove a model.
+        charge_attack: If True, first damage roll in each episode uses +1 die.
+        cavalry_charge: If True, first to-hit roll in each episode uses +1 die.
 
     Returns:
         Dictionary containing:
@@ -45,6 +49,8 @@ def run_wm_analytics(
     odd_parameters = {
         "to_hit_dice": int(to_hit_dice),
         "damage_dice": int(damage_dice),
+        "charge_attack": bool(charge_attack),
+        "cavalry_charge": bool(cavalry_charge),
     }
     if infantry_wounds is not None:
         odd_parameters["infantry_wounds"] = int(infantry_wounds)
@@ -76,6 +82,8 @@ def run_wm_analytics(
             "to_hit_dice": int(to_hit_dice),
             "damage_dice": int(damage_dice),
             "infantry_wounds": infantry_wounds,
+            "charge_attack": bool(charge_attack),
+            "cavalry_charge": bool(cavalry_charge),
         },
     }
 

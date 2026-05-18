@@ -19,6 +19,8 @@ FALLBACK_FORM_VALUES: Dict[str, Any] = {
     "to_hit_dice": 2,
     "damage_dice": 2,
     "infantry_wounds": "",
+    "charge_attack": False,
+    "cavalry_charge": False,
 }
 
 
@@ -58,6 +60,8 @@ def index():
             "to_hit_dice": request.form.get("to_hit_dice", "").strip(),
             "damage_dice": request.form.get("damage_dice", "").strip(),
             "infantry_wounds": request.form.get("infantry_wounds", "").strip(),
+            "charge_attack": request.form.get("charge_attack") == "on",
+            "cavalry_charge": request.form.get("cavalry_charge") == "on",
         }
 
         try:
@@ -70,6 +74,8 @@ def index():
                 "n_tests": int(form_values["n_tests"]),
                 "to_hit_dice": int(form_values["to_hit_dice"]),
                 "damage_dice": int(form_values["damage_dice"]),
+                "charge_attack": bool(form_values["charge_attack"]),
+                "cavalry_charge": bool(form_values["cavalry_charge"]),
             }
             infantry_value = form_values["infantry_wounds"]
             if infantry_value != "":
