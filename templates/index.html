@@ -79,6 +79,14 @@
                 const probs = {{ result.probability_distribution['probabilities'] | tojson }};
                 const cdf = {{ result.cumulative_distribution['cumulative_probabilities'] | tojson }};
                 const xAxisLabel = {{ ('Damage' if result.metric == 'damage' else 'casualties') | tojson }};
+                const outcomeLabel = {{ ('wounds' if result.metric == 'damage' else 'casualties') | tojson }};
+                // Display survival function P(X >= x), so the first value (e.g., 0+) is always 100%.
+                const oneMinusCdf = new Array(probs.length);
+                let runningProbability = 0;
+                for (let i = probs.length - 1; i >= 0; i -= 1) {
+                    runningProbability += probs[i];
+                    oneMinusCdf[i] = Math.min(1, Math.max(0, runningProbability));
+                }
 
                 const probMin = Math.max(0, Math.min(...probs) - 0.2);
                 const probMax = Math.min(1, Math.max(...probs) + 0.2);
@@ -134,8 +142,8 @@
                     data: {
                         labels,
                         datasets: [{
-                            label: 'cumulative distribution function (CDF)',
-                            data: cdf,
+                            label: `Probability of at least X ${outcomeLabel}`,
+                            data: oneMinusCdf,
                             fill: false,
                             borderColor: 'rgba(31, 137, 71, 1)',
                             tension: 0.1
@@ -147,7 +155,7 @@
                             legend: { display: true },
                             tooltip: {
                                 callbacks: {
-                                    label: ctx => `CDF: ${toPercent(ctx.parsed.y)}`
+                                    label: ctx => `%: ${toPercent(ctx.parsed.y)}`
                                 }
                             }
                         },
@@ -163,7 +171,7 @@
                                 max: 1,
                                 title: {
                                     display: true,
-                                    text: 'Cumulative Probability'
+                                    text: 'Probability'
                                 },
                                 ticks: {
                                     callback: value => toPercent(Number(value))

@@ -55,9 +55,9 @@ class TestWebApp(unittest.TestCase):
         self.assertIn(b"damage", response.data)
         self.assertIn(b"1.2", response.data)
         self.assertIn(b"probability distribution function (PDF)", response.data)
-        self.assertIn(b"cumulative distribution function (CDF)", response.data)
+        self.assertIn(b"Probability of at least X", response.data)
         self.assertIn(b"PDF:", response.data)
-        self.assertIn(b"CDF:", response.data)
+        self.assertIn(b"%:", response.data)
         mock_run_wm_analytics.assert_called_once()
 
 
