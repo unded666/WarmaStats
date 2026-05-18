@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>WarmaStats Analytics</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 24px; background: #f8f9fb; color: #222; }
+        h1, h2 { margin-bottom: 12px; }
+        .layout { display: grid; grid-template-columns: 360px 1fr; gap: 24px; align-items: start; }
+        .panel { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 16px; }
+        form label { display: block; margin-top: 10px; font-weight: bold; }
+        form input { width: 100%; padding: 8px; box-sizing: border-box; margin-top: 4px; }
+        button { margin-top: 14px; padding: 10px 14px; border: 0; border-radius: 6px; background: #2463eb; color: #fff; cursor: pointer; }
+        .error { background: #ffe8e8; border: 1px solid #d33; color: #900; padding: 10px; border-radius: 6px; margin-bottom: 10px; }
+        .kpi { display: flex; gap: 18px; margin: 10px 0 16px; }
+        .kpi div { background: #f0f3ff; border: 1px solid #d2dcff; border-radius: 6px; padding: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
+        th:first-child, td:first-child { text-align: left; }
+        .footnote { color: #666; font-size: 0.9rem; margin-top: 10px; }
+        @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<h1>WarmaStats Experiment Runner</h1>
+<div class="layout">
+    <div class="panel">
+        <h2>Parameters</h2>
+        <form method="post">
+            <label for="defence">Defence</label>
+            <input id="defence" name="defence" type="number" required value="{{ form_values.defence }}">
+
+            <label for="attack">Attack</label>
+            <input id="attack" name="attack" type="number" required value="{{ form_values.attack }}">
+
+            <label for="power">Power</label>
+            <input id="power" name="power" type="number" required value="{{ form_values.power }}">
+
+            <label for="armour">Armour</label>
+            <input id="armour" name="armour" type="number" required value="{{ form_values.armour }}">
+
+            <label for="n_attacks">Attacks per episode</label>
+            <input id="n_attacks" name="n_attacks" type="number" min="1" required value="{{ form_values.n_attacks }}">
+
+            <label for="n_tests">Episodes (n_tests)</label>
+            <input id="n_tests" name="n_tests" type="number" min="1" required value="{{ form_values.n_tests }}">
+
+            <label for="to_hit_dice">To-hit dice</label>
+            <input id="to_hit_dice" name="to_hit_dice" type="number" min="1" required value="{{ form_values.to_hit_dice }}">
+
+            <label for="damage_dice">Damage dice</label>
+            <input id="damage_dice" name="damage_dice" type="number" min="1" required value="{{ form_values.damage_dice }}">
+
+            <label for="infantry_wounds">Infantry wounds (optional)</label>
+            <input id="infantry_wounds" name="infantry_wounds" type="number" min="1" placeholder="Leave blank for damage mode" value="{{ form_values.infantry_wounds }}">
+
+            <button type="submit">Run Experiment</button>
+        </form>
+    </div>
+
+    <div class="panel">
+        <h2>Results</h2>
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+
+        {% if result %}
+            <div class="kpi">
+                <div><strong>Metric</strong><br>{{ result.metric }}</div>
+                <div><strong>Expectation</strong><br>{{ "%.4f"|format(result.expectation) }}</div>
+                <div><strong>Samples</strong><br>{{ result.simulated_results|length }}</div>
+            </div>
+
+            <canvas id="probChart" height="110"></canvas>
+            <canvas id="cdfChart" height="110" style="margin-top:16px;"></canvas>
+
+            <table>
+                <thead>
+                <tr>
+                    <th>Value</th>
+                    <th>Probability</th>
+                    <th>Cumulative Probability</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for i in range(result.probability_distribution['values']|length) %}
+                    <tr>
+                        <td>{{ result.probability_distribution['values'][i] }}</td>
+                        <td>{{ "%.6f"|format(result.probability_distribution['probabilities'][i]) }}</td>
+                        <td>{{ "%.6f"|format(result.cumulative_distribution['cumulative_probabilities'][i]) }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="footnote">Probability and cumulative distributions are ready to graph or export.</div>
+
+            <script>
+                const labels = {{ result.probability_distribution['values'] | tojson }};
+                const probs = {{ result.probability_distribution['probabilities'] | tojson }};
+                const cdf = {{ result.cumulative_distribution['cumulative_probabilities'] | tojson }};
+
+                new Chart(document.getElementById('probChart'), {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Probability Distribution',
+                            data: probs,
+                            backgroundColor: 'rgba(36, 99, 235, 0.45)',
+                            borderColor: 'rgba(36, 99, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: true } },
+                        scales: { y: { beginAtZero: true, max: 1 } }
+                    }
+                });
+
+                new Chart(document.getElementById('cdfChart'), {
+                    type: 'line',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Cumulative Distribution',
+                            data: cdf,
+                            fill: false,
+                            borderColor: 'rgba(31, 137, 71, 1)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: true } },
+                        scales: { y: { beginAtZero: true, max: 1 } }
+                    }
+                });
+            </script>
+        {% else %}
+            <p>Submit the form to run a simulation and view analytics.</p>
+        {% endif %}
+    </div>
+</div>
+</body>
+</html>
