@@ -96,7 +96,14 @@
                     },
                     options: {
                         responsive: true,
-                        plugins: { legend: { display: true } },
+                        plugins: {
+                            legend: { display: true },
+                            tooltip: {
+                                callbacks: {
+                                    label: ctx => `Probability: ${ctx.parsed.y.toFixed(6)}`
+                                }
+                            }
+                        },
                         scales: { y: { min: probMin, max: probMax } }
                     }
                 });
@@ -115,7 +122,14 @@
                     },
                     options: {
                         responsive: true,
-                        plugins: { legend: { display: true } },
+                        plugins: {
+                            legend: { display: true },
+                            tooltip: {
+                                callbacks: {
+                                    label: ctx => `Cumulative Probability: ${ctx.parsed.y.toFixed(6)}`
+                                }
+                            }
+                        },
                         scales: { y: { beginAtZero: true, max: 1 } }
                     }
                 });
