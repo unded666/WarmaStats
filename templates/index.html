@@ -15,10 +15,7 @@
         .error { background: #ffe8e8; border: 1px solid #d33; color: #900; padding: 10px; border-radius: 6px; margin-bottom: 10px; }
         .kpi { display: flex; gap: 18px; margin: 10px 0 16px; }
         .kpi div { background: #f0f3ff; border: 1px solid #d2dcff; border-radius: 6px; padding: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
-        th:first-child, td:first-child { text-align: left; }
-        .footnote { color: #666; font-size: 0.9rem; margin-top: 10px; }
+
         @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -76,31 +73,14 @@
             <canvas id="probChart" height="110"></canvas>
             <canvas id="cdfChart" height="110" style="margin-top:16px;"></canvas>
 
-            <table>
-                <thead>
-                <tr>
-                    <th>Value</th>
-                    <th>Probability</th>
-                    <th>Cumulative Probability</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for i in range(result.probability_distribution['values']|length) %}
-                    <tr>
-                        <td>{{ result.probability_distribution['values'][i] }}</td>
-                        <td>{{ "%.6f"|format(result.probability_distribution['probabilities'][i]) }}</td>
-                        <td>{{ "%.6f"|format(result.cumulative_distribution['cumulative_probabilities'][i]) }}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-
-            <div class="footnote">Probability and cumulative distributions are ready to graph or export.</div>
 
             <script>
                 const labels = {{ result.probability_distribution['values'] | tojson }};
                 const probs = {{ result.probability_distribution['probabilities'] | tojson }};
                 const cdf = {{ result.cumulative_distribution['cumulative_probabilities'] | tojson }};
+
+                const probMin = Math.max(0, Math.min(...probs) - 0.2);
+                const probMax = Math.min(1, Math.max(...probs) + 0.2);
 
                 new Chart(document.getElementById('probChart'), {
                     type: 'bar',
@@ -117,7 +97,7 @@
                     options: {
                         responsive: true,
                         plugins: { legend: { display: true } },
-                        scales: { y: { beginAtZero: true, max: 1 } }
+                        scales: { y: { min: probMin, max: probMax } }
                     }
                 });
 
