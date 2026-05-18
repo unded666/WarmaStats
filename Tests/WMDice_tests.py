@@ -417,8 +417,8 @@ class TestExperiment(unittest.TestCase):
         self.assertEqual(damage, 0)
         self.assertEqual(exp.dice.roll.call_count, 1)
 
-    def test_run_single_episode_averages_damage_over_multiple_attacks(self):
-        """Test that run_single_episode returns mean damage across n_attacks."""
+    def test_run_single_episode_returns_cumulative_damage_over_multiple_attacks(self):
+        """Test that run_single_episode returns cumulative damage across n_attacks."""
         exp = experiment(defence=7, attack=0, power=3, armour=1, n_attacks=3)
         exp.dice.roll = Mock(side_effect=[
             np.array([4, 4]),  # attack 1 to-hit (hit)
@@ -429,7 +429,7 @@ class TestExperiment(unittest.TestCase):
 
         damage = exp.run_single_episode()
 
-        self.assertEqual(damage, 2.0)
+        self.assertEqual(damage, 6)
         self.assertEqual(exp.dice.roll.call_count, 4)
 
     def test_experiment_rejects_invalid_n_attacks(self):

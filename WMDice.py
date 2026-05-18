@@ -43,7 +43,7 @@ class experiment:
     
     def run_single_episode (self) -> float:
         """
-        runs a single episode of the experiment and returns expected damage dealt.
+        runs a single episode of the experiment and returns cumulative output.
         Each episode contains n_attacks independent attacks. For each attack, a to-hit
         roll is made, the attack modifier is added, and it must meet or exceed defence.
         A to-hit roll of all ones is always a miss. On a hit, damage is power - armour
@@ -54,8 +54,7 @@ class experiment:
         becomes a casualty, then the next model starts taking damage. Excess damage on
         a killing blow is wasted. In this mode, casualties are returned.
 
-        :return: expected damage dealt in the episode (mean damage across attacks), or
-                 casualties in infantry mode
+        :return: cumulative damage dealt in the episode, or casualties in infantry mode
         """
         to_hit_dice = int(self.odd_parameters.get('to_hit_dice', 2))
         damage_dice = int(self.odd_parameters.get('damage_dice', 2))
@@ -97,12 +96,12 @@ class experiment:
         if infantry_wounds is not None:
             return casualties
 
-        return total_damage / self.n_attacks
+        return total_damage
     
     def run_experiment (self) -> np.ndarray:
         """
         runs the experiment for n_tests episodes and returns the full per-episode result array.
-        In non-infantry mode, each element is expected damage for one episode.
+        In non-infantry mode, each element is cumulative damage for one episode.
         In infantry mode, each element is casualties for one episode.
 
         :return: numpy array of length n_tests containing one result per episode
