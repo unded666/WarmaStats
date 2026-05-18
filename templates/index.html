@@ -66,7 +66,7 @@
         {% if result %}
             <div class="kpi">
                 <div><strong>Metric</strong><br>{{ result.metric }}</div>
-                <div><strong>Expectation</strong><br>{{ "%.4f"|format(result.expectation) }}</div>
+                <div><strong>Expectation</strong><br>{{ "%.1f"|format(result.expectation) }}</div>
                 <div><strong>Samples</strong><br>{{ result.simulated_results|length }}</div>
             </div>
 
@@ -78,6 +78,7 @@
                 const labels = {{ result.probability_distribution['values'] | tojson }};
                 const probs = {{ result.probability_distribution['probabilities'] | tojson }};
                 const cdf = {{ result.cumulative_distribution['cumulative_probabilities'] | tojson }};
+                const xAxisLabel = {{ ('Damage' if result.metric == 'damage' else 'casualties') | tojson }};
 
                 const probMin = Math.max(0, Math.min(...probs) - 0.2);
                 const probMax = Math.min(1, Math.max(...probs) + 0.2);
@@ -89,7 +90,7 @@
                     data: {
                         labels,
                         datasets: [{
-                            label: 'Probability Distribution',
+                            label: 'probability distribution function (PDF)',
                             data: probs,
                             backgroundColor: 'rgba(36, 99, 235, 0.45)',
                             borderColor: 'rgba(36, 99, 235, 1)',
@@ -102,14 +103,24 @@
                             legend: { display: true },
                             tooltip: {
                                 callbacks: {
-                                    label: ctx => `Probability: ${toPercent(ctx.parsed.y)}`
+                                    label: ctx => `PDF: ${toPercent(ctx.parsed.y)}`
                                 }
                             }
                         },
                         scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: xAxisLabel
+                                }
+                            },
                             y: {
                                 min: probMin,
                                 max: probMax,
+                                title: {
+                                    display: true,
+                                    text: 'Probability'
+                                },
                                 ticks: {
                                     callback: value => toPercent(Number(value))
                                 }
@@ -123,7 +134,7 @@
                     data: {
                         labels,
                         datasets: [{
-                            label: 'Cumulative Distribution',
+                            label: 'cumulative distribution function (CDF)',
                             data: cdf,
                             fill: false,
                             borderColor: 'rgba(31, 137, 71, 1)',
@@ -136,14 +147,24 @@
                             legend: { display: true },
                             tooltip: {
                                 callbacks: {
-                                    label: ctx => `Cumulative Probability: ${toPercent(ctx.parsed.y)}`
+                                    label: ctx => `CDF: ${toPercent(ctx.parsed.y)}`
                                 }
                             }
                         },
                         scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: xAxisLabel
+                                }
+                            },
                             y: {
                                 beginAtZero: true,
                                 max: 1,
+                                title: {
+                                    display: true,
+                                    text: 'Cumulative Probability'
+                                },
                                 ticks: {
                                     callback: value => toPercent(Number(value))
                                 }
