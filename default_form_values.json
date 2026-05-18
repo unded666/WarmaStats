@@ -1,0 +1,12 @@
+{
+  "defence": 12,
+  "attack": 6,
+  "power": 10,
+  "armour": 16,
+  "n_attacks": 1,
+  "n_tests": 10000,
+  "to_hit_dice": 2,
+  "damage_dice": 2,
+  "infantry_wounds": ""
+}
+

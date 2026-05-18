@@ -1,3 +1,5 @@
+import json
+from pathlib import Path
 from typing import Any, Dict
 
 from flask import Flask, render_template, request
@@ -7,7 +9,7 @@ from WM_Analytics import run_wm_analytics
 app = Flask(__name__)
 
 
-DEFAULT_FORM_VALUES: Dict[str, Any] = {
+FALLBACK_FORM_VALUES: Dict[str, Any] = {
     "defence": 10,
     "attack": 3,
     "power": 5,
@@ -18,6 +20,24 @@ DEFAULT_FORM_VALUES: Dict[str, Any] = {
     "damage_dice": 2,
     "infantry_wounds": "",
 }
+
+
+def _load_default_form_values() -> Dict[str, Any]:
+    """Load editable defaults from JSON and merge with fallback keys."""
+    defaults_path = Path(__file__).with_name("default_form_values.json")
+    try:
+        with defaults_path.open("r", encoding="utf-8") as handle:
+            loaded_values = json.load(handle)
+    except (OSError, json.JSONDecodeError):
+        loaded_values = {}
+
+    defaults = dict(FALLBACK_FORM_VALUES)
+    if isinstance(loaded_values, dict):
+        defaults.update({key: loaded_values.get(key, value) for key, value in FALLBACK_FORM_VALUES.items()})
+    return defaults
+
+
+DEFAULT_FORM_VALUES: Dict[str, Any] = _load_default_form_values()
 
 
 @app.route("/", methods=["GET", "POST"])
